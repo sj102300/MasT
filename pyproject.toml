@@ -28,7 +28,7 @@ mast = "mast.cli:app"
 include = ["mast*"]
 
 [tool.setuptools.package-data]
-mast = ["prompts/*.md", "templates/*"]
+mast = ["prompts/*.md", "selftest/*.cpp"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

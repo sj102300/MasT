@@ -43,3 +43,27 @@ run:
   max_fix_iterations: 3
   test_timeout_sec: 120
   build_timeout_sec: 1800
+
+build:
+  # auto: --project가 .vcxproj면 msbuild, 디렉터리면 (Windows: vcxproj 있으면 msbuild / 그 외 CMake)
+  system: auto            # auto | cmake | vcxproj
+  configuration: Debug
+  platform: x64
+  toolset: null           # vcxproj: PlatformToolset 덮어쓰기 (VS2022만 있으면 v143)
+  msbuild_path: null      # null이면 PATH → vswhere 순으로 자동 탐색
+  cmake_target: null      # cmake: 제품 CMakeLists의 라이브러리 타깃에 링크 (예: calculator_lib)
+  cmake_generator: null   # 예: "Ninja", "Visual Studio 16 2019"
+  cmake_args: []
+  # 제품 소스를 직접 컴파일할 때 사용할 소스 glob (프로젝트 루트 기준).
+  # 비우면 vcxproj의 ClCompile 목록, CMake는 루트 아래 모든 C++ 소스(main 있는 파일 제외)
+  sources: []
+  exclude: ["build/**", "out/**", "**/test/**", "**/tests/**", "**/third_party/**"]
+  include_dirs: []        # 추가 include 경로
+  defines: []             # 추가 전처리기 정의
+  libs: []                # 추가 링크 라이브러리
+  lib_dirs: []
+  # googletest 소스. 사내망에서 다운로드가 막히면 미리 받아둔 경로 지정
+  gtest_source_dir: null
+  gtest_url: https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip
+  cache_dir: ~/.mast/cache
+  ca_bundle: null

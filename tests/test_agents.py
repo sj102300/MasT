@@ -81,7 +81,7 @@ def test_pipeline_end_to_end_with_fake_llm(tmp_path):
     events = []
     pipe = Pipeline(cfg, events.append, llm_factory=lambda agent: replies[agent])
     state = pipe.run(RunRequest(project_root=CALC, target=CALC / "src" / "calculator.cpp"))
-    assert (state.run_dir / "tests" / "calculator_test.cpp").read_text(encoding="utf-8") == TEST_CODE
+    assert (state.run_dir / "tests" / "calculator_test.cpp").read_text(encoding="utf-8-sig") == TEST_CODE
     for name in ("analysis.json", "plan.json", "usage.json", "llm_calls.jsonl"):
         assert (state.run_dir / name).is_file()
     assert [e.stage for e in events][:2] == ["analyze", "analyze"]
