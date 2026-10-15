@@ -44,5 +44,29 @@ def check_llm(config: Optional[Path] = ConfigOpt, agent: str = typer.Option("", 
     typer.secho(f"reply: {resp.text.strip()!r} (in={resp.input_tokens}, out={resp.output_tokens})", fg="green")
 
 
+@app.command()
+def analyze(
+    target: Path = typer.Argument(..., exists=True, dir_okay=False, help="C++ source/header to analyze"),
+    root: Optional[Path] = typer.Option(None, help="Project root (default: target's parent)"),
+    include: list[Path] = typer.Option([], "--include", "-I", help="Extra dirs to look for the header/source pair"),
+    as_json: bool = typer.Option(False, "--json", help="Print full JSON"),
+    all_functions: bool = typer.Option(False, "--all", help="Include non-testable functions"),
+):
+    """Parse a C++ file (and its header/source pair) and list testable functions."""
+    from .analyzer import analyze_target
+
+    root = root or target.resolve().parent
+    result = analyze_target(target, root, include)
+    if as_json:
+        typer.echo(result.model_dump_json(indent=2))
+        return
+    typer.echo("files: " + ", ".join(f.path for f in result.files))
+    fns = result.functions if all_functions else result.testable_functions()
+    for fn in fns:
+        mark = "" if fn.is_testable else "  (skip)"
+        typer.echo(f"  {fn.kind:8} {fn.qualified_name}{fn.parameters}{mark}")
+    typer.echo(f"{len(result.testable_functions())} testable / {len(result.functions)} total")
+
+
 if __name__ == "__main__":
     app()
