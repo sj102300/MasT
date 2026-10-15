@@ -65,6 +65,10 @@ def test_planted_bug_reported_as_product_bug(tmp_path, gtest_dir):
     judged_user = llms["fixer"].calls[0][1][0].content
     assert "Which is: 0" in judged_user  # gtest failure output reached the judge
     assert (state.run_dir / "result.json").is_file() and (state.run_dir / "build.log").is_file()
+    report = (state.run_dir / "report.md").read_text(encoding="utf-8")
+    assert "제품 코드 버그 의심" in report and "src/calculator.cpp:25" in report
+    assert "| TC003 | `CalculatorTest.FactorialOfZeroIsOne`" in report and "❌ 실패 (제품 버그)" in report
+    assert report.count("✅ 통과") == 3
 
 
 def test_compile_error_fixed_then_product_bug(tmp_path, gtest_dir):

@@ -47,6 +47,10 @@ class AnthropicClient:
             else:
                 with self.client.messages.stream(**params) as stream:
                     msg = stream.get_final_message()
+        except TypeError as e:
+            if "authentication" not in str(e).lower():
+                raise
+            raise LLMError(f"No Claude API credentials: set the {self.cfg.api_key_env} environment variable") from e
         except anthropic.AuthenticationError as e:
             raise LLMError(f"Authentication failed (check ${self.cfg.api_key_env}): {e}") from e
         except anthropic.RateLimitError as e:

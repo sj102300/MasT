@@ -17,10 +17,11 @@ from .agents.models import GeneratedTest, TestPlan
 from .agents.planner import Planner
 from .agents.writer import Writer
 from .analyzer import AnalysisResult, FunctionInfo, analyze_target
-from .build import Builder, BuildSetupError, header_dirs_for, run_tests
+from .build import Builder, BuildSetupError, CaseResult, header_dirs_for, run_tests
 from .config import AppConfig
 from .frameworks import get_framework
 from .llm import LLMClient, LLMError, create_client
+from .report import write_report
 from .verify import Locator, Verdict, verify
 
 Outcome = Literal["pass", "product_bugs", "env_error", "unresolved", "generated_only", "error"]
@@ -63,6 +64,7 @@ class RunResult(BaseModel):
     backend: str = ""
     passed: int = 0
     total: int = 0
+    cases: list[CaseResult] = Field(default_factory=list)  # results of the last test run
 
 
 @dataclass
@@ -130,6 +132,8 @@ class Pipeline:
             self._save(state, "usage.json", state.usage)
             if state.result is not None:
                 self._save(state, "result.json", state.result.model_dump())
+            if state.plan is not None:
+                write_report(state.run_dir)
         self.emit("done", f"{state.result.outcome}: {state.result.message}", outcome=state.result.outcome)
         return state
 
@@ -219,6 +223,7 @@ class Pipeline:
             self._save(state, "build.log", build.log)
             if run is not None:
                 self._save(state, "test_output.log", run.output)
+                result.cases = run.cases
             self.emit("verify", f"[{index}] {verdict.summary}", kind=verdict.kind, iteration=index)
 
             if verdict.kind == "pass":
@@ -256,7 +261,9 @@ class Pipeline:
                 if not test_bugs:
                     kinds = {j.verdict for j in result.judgments.values()}
                     result.outcome = "product_bugs" if kinds == {"product_bug"} else "unresolved"
-                    result.message = verdict.summary + " — 남은 실패는 제품 코드 문제 또는 판단 필요"
+                    tail = "남은 실패는 모두 제품 코드 버그 의심" if result.outcome == "product_bugs" \
+                        else "남은 실패 중 판단이 필요한 항목 있음"
+                    result.message = f"{verdict.summary} — {tail}"
                     return result
                 if index == max_iter:
                     break

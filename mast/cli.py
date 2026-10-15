@@ -102,9 +102,18 @@ def generate(
     typer.secho(f"\n결과: {res.outcome} - {res.message}", fg=color)
     for name, j in res.judgments.items():
         typer.echo(f"  [{j.verdict}] {name}: {j.reason}")
-    typer.echo(f"Run saved to {state.run_dir}")
+    typer.echo(f"Report: {state.run_dir / 'report.md'}")
     if res.outcome in ("env_error", "error"):
         raise typer.Exit(2)
+
+
+@app.command()
+def report(run_dir: Path = typer.Argument(..., exists=True, file_okay=False, help="runs/<run> directory")):
+    """Regenerate and print report.md for a run."""
+    from .report import write_report
+
+    path = write_report(run_dir)
+    typer.echo(path.read_text(encoding="utf-8"))
 
 
 @app.command()
