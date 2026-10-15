@@ -80,9 +80,10 @@ def test_pipeline_end_to_end_with_fake_llm(tmp_path):
     cfg = AppConfig.model_validate({"run": {"output_dir": str(tmp_path)}})
     events = []
     pipe = Pipeline(cfg, events.append, llm_factory=lambda agent: replies[agent])
-    state = pipe.run(RunRequest(project_root=CALC, target=CALC / "src" / "calculator.cpp"))
+    state = pipe.run(RunRequest(project_root=CALC, target=CALC / "src" / "calculator.cpp", build=False))
     assert (state.run_dir / "tests" / "calculator_test.cpp").read_text(encoding="utf-8-sig") == TEST_CODE
-    for name in ("analysis.json", "plan.json", "usage.json", "llm_calls.jsonl"):
+    assert state.result.outcome == "generated_only"
+    for name in ("analysis.json", "plan.json", "usage.json", "llm_calls.jsonl", "result.json"):
         assert (state.run_dir / name).is_file()
     assert [e.stage for e in events][:2] == ["analyze", "analyze"]
     assert len(state.plan.test_cases) == 4

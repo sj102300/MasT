@@ -71,27 +71,40 @@ def analyze(
 @app.command()
 def generate(
     target: Path = typer.Argument(..., exists=True, dir_okay=False, help="C++ source/header to test"),
-    root: Optional[Path] = typer.Option(None, help="Project root (default: target's parent)"),
+    project: Optional[Path] = typer.Option(None, "--project", "-p", exists=True,
+                                           help=".vcxproj file or CMake project dir used for building"),
+    root: Optional[Path] = typer.Option(None, help="Project root for analysis (default: project dir or target's parent)"),
     include: list[Path] = typer.Option([], "--include", "-I", help="Extra dirs to look for the header/source pair"),
     function: list[str] = typer.Option([], "--function", "-f", help="Only these functions (repeatable)"),
+    build: bool = typer.Option(True, "--build/--no-build", help="Build, run and fix the tests"),
     config: Optional[Path] = ConfigOpt,
 ):
-    """Analyze -> plan -> write tests for TARGET."""
+    """Analyze -> plan -> write -> build -> verify -> fix tests for TARGET."""
     from .orchestrator import Pipeline, RunRequest
 
     cfg = load_config(config)
-    root = (root or target.resolve().parent).resolve()
+    if root is None:
+        root = (project if project and project.is_dir() else project.parent) if project else target.resolve().parent
+    root = root.resolve()
 
     def on_event(e):
         typer.echo(f"[{e.stage}] {e.message}")
 
-    req = RunRequest(project_root=root, target=target.resolve(), functions=function, search_dirs=include)
+    req = RunRequest(project_root=root, target=target.resolve(), functions=function, search_dirs=include,
+                     project=project.resolve() if project else None, build=build)
     try:
         state = Pipeline(cfg, on_event).run(req)
     except (LLMError, ValueError) as e:
         typer.secho(f"FAILED: {e}", fg="red", err=True)
         raise typer.Exit(1)
-    typer.secho(f"Run saved to {state.run_dir}", fg="green")
+    res = state.result
+    color = {"pass": "green", "product_bugs": "yellow", "generated_only": "green"}.get(res.outcome, "red")
+    typer.secho(f"\n결과: {res.outcome} - {res.message}", fg=color)
+    for name, j in res.judgments.items():
+        typer.echo(f"  [{j.verdict}] {name}: {j.reason}")
+    typer.echo(f"Run saved to {state.run_dir}")
+    if res.outcome in ("env_error", "error"):
+        raise typer.Exit(2)
 
 
 @app.command()

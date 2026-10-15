@@ -27,6 +27,8 @@ class CaseResult(BaseModel):
 
 
 class TestRunResult(BaseModel):
+    __test__ = False
+
     exit_code: int = 0
     timed_out: bool = False
     output: str = ""
