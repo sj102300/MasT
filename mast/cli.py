@@ -117,6 +117,25 @@ def report(run_dir: Path = typer.Argument(..., exists=True, file_okay=False, hel
 
 
 @app.command()
+def ui(
+    config: Optional[Path] = ConfigOpt,
+    port: int = typer.Option(8501, help="Port"),
+):
+    """Start the web UI (Streamlit)."""
+    import subprocess
+
+    app_path = Path(__file__).resolve().parent / "webui" / "app.py"
+    cmd = [sys.executable, "-m", "streamlit", "run", str(app_path), "--server.port", str(port),
+           "--browser.gatherUsageStats", "false"]
+    if config:
+        cmd += ["--", "--config", str(config.resolve())]
+    try:
+        raise typer.Exit(subprocess.call(cmd))
+    except KeyboardInterrupt:
+        raise typer.Exit(0)
+
+
+@app.command()
 def selftest(
     project: Optional[Path] = typer.Option(None, help="Sample project (.vcxproj or dir). Default: examples/calculator"),
     work_dir: Path = typer.Option(Path("runs") / "selftest", help="Build directory"),
