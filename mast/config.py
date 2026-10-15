@@ -45,6 +45,9 @@ class LLMOverride(BaseModel):
 
 class RunConfig(BaseModel):
     output_dir: str = "runs"
+    framework: str = "gtest"
+    # Language for human-readable fields (test descriptions, reports).
+    language: str = "Korean"
     max_fix_iterations: int = 3
     test_timeout_sec: float = 120
     build_timeout_sec: float = 1800

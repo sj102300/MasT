@@ -68,5 +68,31 @@ def analyze(
     typer.echo(f"{len(result.testable_functions())} testable / {len(result.functions)} total")
 
 
+@app.command()
+def generate(
+    target: Path = typer.Argument(..., exists=True, dir_okay=False, help="C++ source/header to test"),
+    root: Optional[Path] = typer.Option(None, help="Project root (default: target's parent)"),
+    include: list[Path] = typer.Option([], "--include", "-I", help="Extra dirs to look for the header/source pair"),
+    function: list[str] = typer.Option([], "--function", "-f", help="Only these functions (repeatable)"),
+    config: Optional[Path] = ConfigOpt,
+):
+    """Analyze -> plan -> write tests for TARGET."""
+    from .orchestrator import Pipeline, RunRequest
+
+    cfg = load_config(config)
+    root = (root or target.resolve().parent).resolve()
+
+    def on_event(e):
+        typer.echo(f"[{e.stage}] {e.message}")
+
+    req = RunRequest(project_root=root, target=target.resolve(), functions=function, search_dirs=include)
+    try:
+        state = Pipeline(cfg, on_event).run(req)
+    except (LLMError, ValueError) as e:
+        typer.secho(f"FAILED: {e}", fg="red", err=True)
+        raise typer.Exit(1)
+    typer.secho(f"Run saved to {state.run_dir}", fg="green")
+
+
 if __name__ == "__main__":
     app()

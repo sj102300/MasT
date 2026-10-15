@@ -38,6 +38,8 @@ agents: {}
 
 run:
   output_dir: runs
+  framework: gtest
+  language: Korean      # 테스트 설명/리포트 언어
   max_fix_iterations: 3
   test_timeout_sec: 120
   build_timeout_sec: 1800
