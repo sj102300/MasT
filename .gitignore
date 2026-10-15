@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+config.yaml
+runs/
+.mast/
+examples/**/build/
+examples/**/x64/
+examples/**/.vs/
