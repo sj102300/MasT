@@ -1,6 +1,6 @@
 # MasT
 
-C++ 프로젝트의 googletest 단위테스트를 자동 생성·빌드·검증하는 멀티 에이전트 시스템. 설계는 [PLAN.md](PLAN.md) 참고.
+C++ 프로젝트의 googletest 단위테스트를 자동 생성·빌드·검증하는 멀티 에이전트 시스템. 설계는 [PLAN.md](PLAN.md), 설치·사용법 상세는 [docs/USAGE.md](docs/USAGE.md), 소개 자료는 [docs/PRESENTATION.md](docs/PRESENTATION.md).
 
 ## 요구사항
 - Python 3.11+
