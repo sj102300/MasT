@@ -94,5 +94,51 @@ def generate(
     typer.secho(f"Run saved to {state.run_dir}", fg="green")
 
 
+@app.command()
+def selftest(
+    project: Optional[Path] = typer.Option(None, help="Sample project (.vcxproj or dir). Default: examples/calculator"),
+    work_dir: Path = typer.Option(Path("runs") / "selftest", help="Build directory"),
+    config: Optional[Path] = ConfigOpt,
+):
+    """Build and run hand-written tests for the bundled sample (checks the toolchain, no LLM)."""
+    from importlib import resources
+
+    from .build import Builder, BuildSetupError, run_tests
+
+    cfg = load_config(config)
+    project = project or Path(__file__).resolve().parent.parent / "examples" / "calculator"
+    if not project.exists():
+        typer.secho(f"Sample project not found: {project}. Pass --project.", fg="red", err=True)
+        raise typer.Exit(1)
+    tests_dir = work_dir / "tests"
+    tests_dir.mkdir(parents=True, exist_ok=True)
+    test_file = tests_dir / "calculator_selftest.cpp"
+    code = resources.files("mast.selftest").joinpath("calculator_selftest.cpp").read_text(encoding="utf-8")
+    test_file.write_text(code, encoding="utf-8-sig")
+    try:
+        builder = Builder(cfg.build, project)
+        typer.echo(f"backend: {builder.backend} ({builder.project})")
+        builder.prepare(work_dir / "build", [test_file])
+        typer.echo("building... (first build also compiles googletest)")
+        result = builder.build(work_dir / "build", cfg.run.build_timeout_sec)
+    except BuildSetupError as e:
+        typer.secho(f"FAILED: {e}", fg="red", err=True)
+        raise typer.Exit(1)
+    if not result.ok:
+        typer.echo(result.log[-5000:])
+        typer.secho(f"BUILD FAILED ({result.stage})", fg="red", err=True)
+        raise typer.Exit(1)
+    run = run_tests(result.exe, work_dir / "build", cfg.run.test_timeout_sec)
+    for c in run.cases:
+        typer.echo(f"  {c.status:8} {c.full_name}")
+    expected_fail = {"CalculatorTest.FactorialOfZeroIsOne"}
+    failed = {c.full_name for c in run.cases if c.status != "passed"}
+    if failed == expected_fail:
+        typer.secho("OK: toolchain works (FactorialOfZeroIsOne fails on purpose: planted bug)", fg="green")
+    else:
+        typer.secho(f"Unexpected results: {sorted(failed)}", fg="red", err=True)
+        raise typer.Exit(1)
+
+
 if __name__ == "__main__":
     app()

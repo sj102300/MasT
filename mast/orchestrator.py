@@ -102,7 +102,8 @@ class Pipeline:
         state.test = writer.write(state.analysis, fns, state.plan, includes, test_name, str(req.target))
         tests_dir = run_dir / "tests"
         tests_dir.mkdir(exist_ok=True)
-        (tests_dir / test_name).write_text(state.test.content, encoding="utf-8")
+        # BOM: MSVC on Korean Windows otherwise reads UTF-8 comments as cp949
+        (tests_dir / test_name).write_text(state.test.content, encoding="utf-8-sig")
         self.emit("write", f"Wrote tests/{test_name}", path=str(tests_dir / test_name))
 
         state.usage = _sum_usage(planner, writer)

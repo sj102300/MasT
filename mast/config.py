@@ -53,10 +53,40 @@ class RunConfig(BaseModel):
     build_timeout_sec: float = 1800
 
 
+class BuildConfig(BaseModel):
+    # auto: vcxproj when --project is a .vcxproj (or one exists on Windows), else cmake
+    system: Literal["auto", "cmake", "vcxproj"] = "auto"
+    configuration: str = "Debug"
+    platform: str = "x64"
+    # vcxproj: override PlatformToolset (e.g. v143 when only VS2022 is installed)
+    toolset: str | None = None
+    msbuild_path: str | None = None
+    # cmake: link this target from the project's CMakeLists.txt instead of compiling sources
+    cmake_target: str | None = None
+    cmake_generator: str | None = None
+    cmake_args: list[str] = Field(default_factory=list)
+    # Source selection when compiling product sources directly (globs, relative to project root).
+    # Empty = vcxproj ClCompile list, or every C++ source under the project root (cmake).
+    sources: list[str] = Field(default_factory=list)
+    exclude: list[str] = Field(
+        default_factory=lambda: ["build/**", "out/**", "**/test/**", "**/tests/**", "**/third_party/**"]
+    )
+    include_dirs: list[str] = Field(default_factory=list)
+    defines: list[str] = Field(default_factory=list)
+    libs: list[str] = Field(default_factory=list)
+    lib_dirs: list[str] = Field(default_factory=list)
+    # googletest source: local checkout (offline) or downloaded once into cache_dir
+    gtest_source_dir: str | None = None
+    gtest_url: str = "https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip"
+    cache_dir: str = "~/.mast/cache"
+    ca_bundle: str | None = None
+
+
 class AppConfig(BaseModel):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     agents: dict[str, LLMOverride] = Field(default_factory=dict)
     run: RunConfig = Field(default_factory=RunConfig)
+    build: BuildConfig = Field(default_factory=BuildConfig)
 
     def llm_for(self, agent: str) -> LLMConfig:
         override = self.agents.get(agent)
