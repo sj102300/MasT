@@ -46,10 +46,21 @@ mast selftest --project examples\calculator\calculator.vcxproj   # Windows에서
 # 함수 목록 확인 (LLM 호출 없음)
 mast analyze examples/calculator/src/calculator.cpp --root examples/calculator
 
-# 테스트 생성 (현재: 분석 → TC 설계 → 코드 생성)
-mast generate examples/calculator/src/calculator.cpp --root examples/calculator
+# 테스트 생성 → 빌드 → 실행 → 검증 → 수정
+mast generate examples\calculator\src\calculator.cpp --project examples\calculator\calculator.vcxproj   # Windows
+mast generate examples/calculator/src/calculator.cpp --project examples/calculator                        # Linux (CMake)
+
+# 옵션
+#   -f, --function NAME   특정 함수만 (반복 가능)
+#   --no-build            코드 생성까지만
 ```
-결과는 `runs/<시각>-<파일명>/`에 저장된다: `analysis.json`, `plan.json`, `tests/*_test.cpp`, `llm_calls.jsonl`(LLM 요청/응답 기록), `usage.json`.
+
+결과(`outcome`):
+- `pass`: 모든 테스트 통과
+- `product_bugs`: 남은 실패가 모두 제품 코드 버그로 판정됨 (수정 제안은 결과에 포함, 제품 코드는 수정하지 않음)
+- `unresolved`: 최대 수정 횟수 도달 / 같은 실패 반복 / 판단 필요
+- `env_error`: include 경로, 링크, 툴셋 등 설정 문제 → 출력된 힌트대로 `config.yaml`의 `build` 섹션 보충
+결과는 `runs/<시각>-<파일명>/`에 저장된다: `analysis.json`, `plan.json`, `tests/*_test.cpp`(최종), `history/`(수정 이력), `build/`(생성된 테스트 프로젝트), `build.log`, `test_output.log`, `result.json`, `llm_calls.jsonl`(LLM 요청/응답 기록), `usage.json`.
 
 프롬프트는 `mast/prompts/*.md`에서 수정한다.
 
