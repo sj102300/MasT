@@ -66,6 +66,15 @@ mast generate examples/calculator/src/calculator.cpp --project examples/calculat
 
 프롬프트는 `mast/prompts/*.md`에서 수정한다.
 
+## 웹 UI
+```bash
+mast ui            # http://localhost:8501
+mast ui -c config.yaml --port 8600
+```
+- **새 실행**: 프로젝트(.vcxproj 또는 CMake 폴더) → 대상 파일 → 함수 선택 → 시작. 단계별 진행 표시
+- **실행 기록**: `runs/`의 이전 결과. 리포트, 테스트 코드(다운로드/수정 이력), TC 표, 빌드 로그, 테스트 출력, LLM 요청/응답
+- 사이드바에서 LLM/빌드 설정을 이번 실행에 한해 바꿀 수 있다 (파일은 수정하지 않음)
+
 ## 빌드 방식
 - **Windows**: 제품 `.vcxproj`에서 include 경로, 전처리기 정의, 런타임 라이브러리, 속성 시트(.props), 프로젝트 참조를 읽어 `mast_tests.vcxproj`를 따로 생성하고 msbuild로 빌드한다. 원본 sln/vcxproj는 건드리지 않는다. googletest는 같은 프로젝트에서 소스로 함께 컴파일된다.
 - **Linux**: 테스트용 `CMakeLists.txt`를 생성한다. 기본은 제품 소스를 직접 컴파일, `build.cmake_target`을 지정하면 제품 CMake 타깃에 링크한다.

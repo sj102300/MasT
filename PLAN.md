@@ -127,9 +127,11 @@ MasT/
 │  ├─ agents/       # planner, writer, fixer
 │  ├─ frameworks/   # gtest (nsfwtest 예정)
 │  ├─ build/        # vcxproj, cmake, runner, log parser
+│  ├─ verify/       # 빌드 로그 진단 파싱, 결과 분류
+│  ├─ webui/app.py  # Streamlit (mast ui)
+│  ├─ report.py
 │  ├─ orchestrator.py
 │  └─ cli.py
-├─ webui/app.py
 ├─ prompts/
 ├─ examples/calculator/   # 샘플 C++17 프로젝트 (sln/vcxproj + CMakeLists 둘 다)
 ├─ tests/                 # MasT 자체 pytest (LLM은 mock)
@@ -144,7 +146,7 @@ MasT/
 3. `scripts\setup.ps1` → venv 생성, 의존성 설치, gtest 소스 다운로드
 4. `copy config.example.yaml config.yaml`, 환경변수에 API 키 설정
 5. `mast generate --project examples\calculator\calculator.vcxproj --target src\calculator.cpp`
-6. `streamlit run webui\app.py`
+6. `mast ui`
 
 코드 원칙: `pathlib` 사용, `subprocess`는 리스트 인자(shell 미사용), 출력 인코딩 처리(MSVC 로그 cp949 대비), 경로 공백 처리.
 
