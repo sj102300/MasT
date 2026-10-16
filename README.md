@@ -36,3 +36,15 @@ mast check-llm
 ```bash
 pytest
 ```
+
+## 사용법
+```bash
+# 함수 목록 확인 (LLM 호출 없음)
+mast analyze examples/calculator/src/calculator.cpp --root examples/calculator
+
+# 테스트 생성 (현재: 분석 → TC 설계 → 코드 생성)
+mast generate examples/calculator/src/calculator.cpp --root examples/calculator
+```
+결과는 `runs/<시각>-<파일명>/`에 저장된다: `analysis.json`, `plan.json`, `tests/*_test.cpp`, `llm_calls.jsonl`(LLM 요청/응답 기록), `usage.json`.
+
+프롬프트는 `mast/prompts/*.md`에서 수정한다.

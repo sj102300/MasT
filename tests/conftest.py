@@ -5,3 +5,4 @@ for _key in ("NO_PROXY", "no_proxy"):
     _cur = os.environ.get(_key, "")
     if "127.0.0.1" not in _cur:
         os.environ[_key] = ",".join(filter(None, [_cur, "127.0.0.1", "localhost"]))
+import sys, pathlib; sys.path.insert(0, str(pathlib.Path(__file__).parent))
