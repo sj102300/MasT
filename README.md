@@ -60,6 +60,8 @@ mast generate examples/calculator/src/calculator.cpp --project examples/calculat
 - `product_bugs`: 남은 실패가 모두 제품 코드 버그로 판정됨 (수정 제안은 결과에 포함, 제품 코드는 수정하지 않음)
 - `unresolved`: 최대 수정 횟수 도달 / 같은 실패 반복 / 판단 필요
 - `env_error`: include 경로, 링크, 툴셋 등 설정 문제 → 출력된 힌트대로 `config.yaml`의 `build` 섹션 보충
+
+실행이 끝나면 `runs/<run>/report.md`에 리포트(결과 요약, 제품 버그 수정 제안, TC 표, 진행 이력)가 생성된다. 다시 만들려면 `mast report runs/<run>`.
 결과는 `runs/<시각>-<파일명>/`에 저장된다: `analysis.json`, `plan.json`, `tests/*_test.cpp`(최종), `history/`(수정 이력), `build/`(생성된 테스트 프로젝트), `build.log`, `test_output.log`, `result.json`, `llm_calls.jsonl`(LLM 요청/응답 기록), `usage.json`.
 
 프롬프트는 `mast/prompts/*.md`에서 수정한다.
